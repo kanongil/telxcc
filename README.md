@@ -71,7 +71,7 @@ Important: telxcc will *never ever* be like Emacs; it is simple and specialized 
 
 ## Binaries
 
-For precompiled binary files see telxcc' GitHub repository Releases page.
+For precompiled binary files see [Releases](https://github.com/petrkutalek/telxcc/releases) page.
 
 
 ## Build
