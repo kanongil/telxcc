@@ -272,7 +272,10 @@ struct {
 } const ENTITIES[] = {
 	{ .character = '<', .entity = "&lt;" },
 	{ .character = '>', .entity = "&gt;" },
-	{ .character = '&', .entity = "&amp;" }
+	{ .character = '&', .entity = "&amp;" },
+	{ .character = 0x200e, .entity = "&lrm;" },
+	{ .character = 0x200f, .entity = "&rlm;" },
+	{ .character = 0x00a0, .entity = "&nbsp;" },
 };
 
 // PMTs table
@@ -354,11 +357,15 @@ void remap_g0_charset(uint8_t c) {
 
 void timestamp_to_srttime(uint64_t timestamp, char *buffer) {
 	uint64_t p = timestamp;
-	uint8_t h = p / 3600000;
-	uint8_t m = p / 60000 - 60 * h;
-	uint8_t s = p / 1000 - 3600 * h - 60 * m;
-	uint16_t u = p - 3600000 * h - 60000 * m - 1000 * s;
-	sprintf(buffer, "%02"PRIu8":%02"PRIu8":%02"PRIu8",%03"PRIu16, h, m, s, u);
+    uint8_t h = p / 3600000;
+    uint8_t m = p / 60000 - 60 * h;
+    uint8_t s = p / 1000 - 3600 * h - 60 * m;
+    uint16_t u = p - 3600000 * h - 60000 * m - 1000 * s;
+	if (h) {
+		sprintf(buffer, "%02"PRIu8":%02"PRIu8":%02"PRIu8".%03"PRIu16, h, m, s, u);
+	} else {
+		sprintf(buffer, "%02"PRIu8":%02"PRIu8".%03"PRIu16, m, s, u);
+	}
 }
 
 // UCS-2 (16 bits) to UTF-8 (Unicode Normalization Form C (NFC)) conversion
@@ -434,7 +441,7 @@ void process_page(teletext_page_t *page) {
 		timestamp_to_srttime(page->hide_timestamp, timecode_hide);
 		timecode_hide[12] = 0;
 
-		fprintf(fout, "%"PRIu32"\r\n%s --> %s\r\n", ++frames_produced, timecode_show, timecode_hide);
+		fprintf(fout, "%s --> %s align:start\r\n", timecode_show, timecode_hide);
 	}
 
 	// process data
@@ -506,7 +513,7 @@ void process_page(teletext_page_t *page) {
 
 				if (v >= 0x20) {
 					// translate some chars into entities, if in colour mode
-					if (config.colours == YES) {
+					//if (config.colours == YES) {
 						for (uint8_t i = 0; i < ARRAY_LENGTH(ENTITIES); i++) {
 							if (v == ENTITIES[i].character) {
 								fprintf(fout, "%s", ENTITIES[i].entity);
@@ -515,7 +522,7 @@ void process_page(teletext_page_t *page) {
 								break;
 							}
 						}
-					}
+					//}
 				}
 
 				if (v >= 0x20) {
@@ -844,6 +851,9 @@ void process_pes_packet(uint8_t *buffer, uint16_t size) {
 		delta = 1000 * config.offset + 1000 * config.utc_refvalue - t;
 		states.pts_initialized = YES;
 
+		fprintf(fout, "WEBVTT\n");
+		fprintf(fout, "X-TIMESTAMP-MAP=LOCAL:00:00.000,MPEGTS:%llu\n\n", -90*delta);
+		
 		if ((using_pts == NO) && (global_timestamp == 0)) {
 			// We are using global PCR, nevertheless we still have not received valid PCR timestamp yet
 			states.pts_initialized = NO;
