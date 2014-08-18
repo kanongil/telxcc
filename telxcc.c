@@ -178,6 +178,7 @@ struct {
 	uint16_t page; // teletext page containing cc we want to filter
 	uint16_t tid; // 13-bit packet ID for teletext stream
 	double offset; // time offset in seconds
+	double end; // end time in seconds
 	uint8_t colours; // output <font...></font> tags
 	uint8_t bom; // print UTF-8 BOM characters at the beginning of output
 	uint8_t nonempty; // produce at least one (dummy) frame
@@ -193,6 +194,7 @@ struct {
 	.page = 0,
 	.tid = 0,
 	.offset = 0,
+	.end = 0,
 	.colours = NO,
 	.bom = YES,
 	.nonempty = NO,
@@ -253,6 +255,9 @@ transmission_mode_t transmission_mode = TRANSMISSION_MODE_SERIAL;
 
 // flag indicating if incoming data should be processed or ignored
 uint8_t receiving_data = NO;
+
+// graceful exit support
+uint8_t exit_request = NO;
 
 // current charset (charset can be -- and always is -- changed during transmission)
 struct {
@@ -613,6 +618,12 @@ void process_telx_packet(data_unit_t data_unit_id, teletext_packet_payload_t *pa
 		uint8_t c = (primary_charset.g0_m29 != UNDEF) ? primary_charset.g0_m29 : charset;
 		remap_g0_charset(c);
 
+		if (config.end && timestamp > config.end) {
+			receiving_data = NO;
+			exit_request = YES;
+			return;
+		}
+
 		/*
 		// I know -- not needed; in subtitles we will never need disturbing teletext page status bar
 		// displaying tv station name, current time etc.
@@ -970,9 +981,6 @@ if (pmt.pointer_field > 0) {
 	}
 }
 
-// graceful exit support
-uint8_t exit_request = NO;
-
 void signal_handler(int sig) {
 	if ((sig == SIGINT) || (sig == SIGTERM)) {
 		fprintf(stderr, "- SIGINT/SIGTERM received, preparing graceful exit\n");
@@ -1073,6 +1081,9 @@ int main(const int argc, char *argv[]) {
 		//else if ((strcmp(argv[i], "-F") == 0) && (argc > i + 1)) {
 		//	//FIXME
 		//}
+		else if ((strcmp(argv[i], "-e") == 0) && (argc > i + 1)) {
+			config.end = atof(argv[++i]) * 1000;
+		}
 		else if (strcmp(argv[i], "-v") == 0) {
 			config.verbose = YES;
 		}
