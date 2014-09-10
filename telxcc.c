@@ -446,7 +446,7 @@ void process_page(teletext_page_t *page) {
 		timestamp_to_srttime(page->hide_timestamp, timecode_hide);
 		timecode_hide[12] = 0;
 
-		fprintf(fout, "%s --> %s position:18%% align:start\r\n", timecode_show, timecode_hide);
+		fprintf(fout, "%s --> %s position:18%% align:start\n", timecode_show, timecode_hide);
 	}
 
 	// process data
@@ -545,10 +545,10 @@ void process_page(teletext_page_t *page) {
 		}
 
 		// line delimiter
-		fprintf(fout, "%s", (config.se_mode == YES) ? " " : "\r\n");
+		fprintf(fout, "%s", (config.se_mode == YES) ? " " : "\n");
 	}
 
-	fprintf(fout, "\r\n");
+	fprintf(fout, "\n");
 	fflush(fout);
 }
 
@@ -1400,7 +1400,7 @@ int main(const int argc, char *argv[]) {
 	}
 
 	if ((config.se_mode == NO) && (frames_produced == 0) && (config.nonempty == YES)) {
-		fprintf(fout, "1\r\n00:00:00,000 --> 00:00:10,000\r\n.\r\n\r\n");
+		fprintf(fout, "1\n00:00:00,000 --> 00:00:10,000\n.\n\n");
 		fflush(fout);
 		frames_produced++;
 	}
