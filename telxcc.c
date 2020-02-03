@@ -446,7 +446,7 @@ void process_page(teletext_page_t *page) {
 		timestamp_to_srttime(page->hide_timestamp, timecode_hide);
 		timecode_hide[12] = 0;
 
-		fprintf(fout, "%s --> %s position:18%% align:start\n", timecode_show, timecode_hide);
+		fprintf(fout, "%s --> %s position:14%% size:72%% align:start\n", timecode_show, timecode_hide);
 	}
 
 	// process data
