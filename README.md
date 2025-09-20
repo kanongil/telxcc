@@ -1,3 +1,7 @@
+## THIS CODE IS NOT MAINTAINED!
+
+*This is an old fork of a deleted repository. Use at your own discretion.*
+
 # telxcc
 
 telxcc is utility extracting teletext Closed Captions from Transport Stream binary files (TS & M2TS) into SubRip text files (SRT).
